@@ -197,7 +197,7 @@ Refactoring Views . I will be using APIView , the class based view approach
 
 
 """Using generic class based views"""
-from .models import Snippet
+""" from .models import Snippet
 from .serializer import SnippetSerializer
 from rest_framework import generics
 from django.contrib.auth.models import User
@@ -208,10 +208,10 @@ from .permissions import IsOwnerOrReadOnly
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
-from rest_framework import renderers
+from rest_framework import renderers """
 
 
-class SnippetList(generics.ListCreateAPIView):
+""" class SnippetList(generics.ListCreateAPIView):
     queryset = Snippet.objects.all()
     serializer_class = SnippetSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
@@ -222,13 +222,57 @@ class SnippetList(generics.ListCreateAPIView):
 class SnippetDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Snippet.objects.all()
     serializer_class = SnippetSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly] """
 
+"""
+
+
+
+
+## Refactoring code using ViewSet
 class UserList(generics.ListAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
 class UserDetail(generics.RetrieveAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+ """
+
+from rest_framework import viewsets
+from rest_framework import permissions
+from rest_framework import renderers
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from .models import Snippet
+from .serializer import SnippetSerializer, UserSerializer
+from .permissions import IsOwnerOrReadOnly
+from django.contrib.auth.models import User
+from rest_framework.decorators import api_view
+from rest_framework.reverse import reverse
+
+
+class SnippetViewSet(viewsets.ModelViewSet):
+    """
+    The viewset automtically provides list, create, update , retrieve and destroy actions.
+    It will also provide addtional highlight action.
+    """
+    queryset = Snippet.objects.all()
+    serializer_class = SnippetSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
+
+    @action(detail=True, renderer_classes=[renderers.StaticHTMLRenderer])
+    def highlight(self, request, *args, **kwargs):
+        snippet = self.get_object()
+        return Response(snippet.highlighted)
+
+    def perform_create(self, serializer):
+        serializer.save(owner=self.request.user)
+
+class UserViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    This viewset automatically provides list and retrieves action
+    """
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
@@ -243,10 +287,11 @@ def api_root(request, format=None):
     )
 
 
-class SnippetHighlight(generics.GenericAPIView):
+""" class SnippetHighlight(generics.GenericAPIView):
     queryset = Snippet.objects.all()
     renderer_class = [renderers.StaticHTMLRenderer]
 
     def get(self, request, *args, **kwargs):
         snippet = self.get_object()
         return Response(snippet.highlighted)
+ """
