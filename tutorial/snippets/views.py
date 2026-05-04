@@ -285,7 +285,7 @@ def api_root(request, format=None):
             "snippets": reverse("snippet-list", request=request, format=format),
         }
     )
-
+"""Adding dummy comment to check git push """
 
 """ class SnippetHighlight(generics.GenericAPIView):
     queryset = Snippet.objects.all()
